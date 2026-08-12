@@ -57,10 +57,16 @@
             background: rgba(30, 41, 59, 0.8);
         }
         
-        /* Toggle Switch Styles */
-        .toggle-checkbox:checked { right: 0; border-color: #68D391; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #68D391; }
-        html[dir="rtl"] .toggle-checkbox:checked { right: auto; left: 0; }
+        /* STRICTLY Hide number input arrows across all browsers */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none !important;
+            margin: 0 !important;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield !important;
+            appearance: textfield !important;
+        }
         
         input, select { outline: none !important; box-shadow: none !important; }
     </style>
@@ -93,7 +99,7 @@
                 <div class="flex items-center gap-2">
                     <label for="salaryInput" class="text-sm text-slate-500" data-i18n="monthlySalary">Monthly Salary</label>
                     <div class="relative w-32">
-                        <input type="number" id="salaryInput" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm font-medium focus:border-brand-500" value="0">
+                        <input type="number" id="salaryInput" step="0.0001" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm font-medium focus:border-brand-500" value="0">
                         <span class="absolute top-1.5 right-3 text-xs text-slate-400 font-bold rtl:right-auto rtl:left-3">SAR</span>
                     </div>
                 </div>
@@ -189,7 +195,7 @@
                 <div id="ccFields" class="hidden">
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="monthlyDbrImpact">Monthly DBR Impact (SAR)</label>
-                        <input type="number" id="ccImpact" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500">
+                        <input type="number" id="ccImpact" step="0.0001" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500">
                         <p class="text-xs text-slate-400 mt-1" data-i18n="ccHint">Counts towards limits but does not add to total remaining debt.</p>
                     </div>
                 </div>
@@ -199,11 +205,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="principal">Principal (SAR)</label>
-                            <input type="number" id="principal" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500">
+                            <input type="number" id="principal" step="0.0001" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="interestRate">Interest Rate (%)</label>
-                            <input type="number" id="interestRate" step="0.01" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500">
+                            <input type="number" id="interestRate" step="0.0001" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="durationMonths">Duration (Months)</label>
@@ -211,15 +217,15 @@
                         </div>
                     </div>
 
-                    <!-- Fixed / Variable Toggle -->
+                    <!-- Fixed / Variable Toggle (Tailwind Optimized) -->
                     <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
                         <span class="text-sm font-medium" data-i18n="installmentType">Installment Type</span>
                         <div class="flex items-center gap-3">
                             <span class="text-xs font-semibold text-slate-500" data-i18n="fixed">Fixed</span>
-                            <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" name="isVariable" id="isVariable" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 z-10 top-0 left-0 m-0"/>
-                                <label for="isVariable" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 dark:bg-slate-600 cursor-pointer transition-colors duration-300"></label>
-                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="isVariable" class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] rtl:after:right-[2px] rtl:after:left-auto after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-brand-500"></div>
+                            </label>
                             <span class="text-xs font-semibold text-slate-500" data-i18n="variable">Variable</span>
                         </div>
                     </div>
@@ -267,6 +273,11 @@
                 <button id="closeModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                     <i class="ph ph-x text-xl"></i>
                 </button>
+            </div>
+
+            <!-- Negative Amortization Warning Banner -->
+            <div id="modalWarningBanner" class="hidden bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 text-xs text-center border-b border-red-100 dark:border-red-900/50 font-medium">
+                Warning: Your payment is lower than the interest (Negative Amortization). Your debt is increasing.
             </div>
             
             <!-- Summary Stats in Modal -->
@@ -374,7 +385,10 @@
                 recordDeleted: "Record deleted.",
                 months: "Months",
                 to: "to",
-                amount: "Amount"
+                amount: "Amount",
+                fromMonth: "From (Month)",
+                toMonth: "To (Month)",
+                amountSAR: "Amount (SAR)"
             },
             ar: {
                 appTitle: "متتبع القروض",
@@ -423,7 +437,10 @@
                 recordDeleted: "تم حذف السجل.",
                 months: "أشهر",
                 to: "إلى",
-                amount: "المبلغ"
+                amount: "المبلغ",
+                fromMonth: "من (شهر)",
+                toMonth: "إلى (شهر)",
+                amountSAR: "المبلغ (ريال)"
             }
         };
 
@@ -516,7 +533,10 @@
 
         const getLoanStatus = (loan) => {
             if (loan.type === 'credit_card') {
-                return { currentMonthly: parseFloat(loan.ccImpact) || 0, remainingBalance: 0, paidSoFar: 0, isFinished: false };
+                const ccImpact = parseFloat(loan.ccImpact) || 0;
+                // currentMonthly=0 so it doesn't inflate the displayed total monthly spending on dashboard,
+                // but maxMonthly=ccImpact ensures it restricts the DBR limits.
+                return { currentMonthly: 0, maxMonthly: ccImpact, remainingBalance: 0, paidSoFar: 0, isFinished: false };
             }
 
             const data = calculateAmortization(loan);
@@ -527,21 +547,34 @@
             if (monthsPassed >= data.schedule.length) {
                 // Loan is finished
                 const totalPaid = data.schedule.reduce((acc, row) => acc + row.payment, 0);
-                return { currentMonthly: 0, remainingBalance: 0, paidSoFar: totalPaid, isFinished: true };
+                return { currentMonthly: 0, maxMonthly: 0, remainingBalance: 0, paidSoFar: totalPaid, isFinished: true };
             }
 
             // Loan is active
             let paidSoFar = 0;
-            for (let i = 0; i < monthsPassed; i++) {
-                paidSoFar += data.schedule[i].payment;
+            let totalExpected = 0;
+            let maxPayment = 0;
+
+            for (let i = 0; i < data.schedule.length; i++) {
+                totalExpected += data.schedule[i].payment;
+                // Ensure maxPayment scans the entire schedule for Variable Limit warnings
+                if (data.schedule[i].payment > maxPayment) {
+                    maxPayment = data.schedule[i].payment;
+                }
+                if (i < monthsPassed) {
+                    paidSoFar += data.schedule[i].payment;
+                }
             }
 
             const currentMonthData = data.schedule[monthsPassed] || data.schedule[data.schedule.length - 1];
-            const remainingBalance = data.schedule[monthsPassed > 0 ? monthsPassed - 1 : 0].balance;
+            
+            // Remaining debt defined as Total Future Planned Payments
+            const remainingDebt = totalExpected - paidSoFar;
 
             return { 
                 currentMonthly: currentMonthData.payment, 
-                remainingBalance: remainingBalance, 
+                maxMonthly: maxPayment,
+                remainingBalance: remainingDebt, 
                 paidSoFar: paidSoFar,
                 isFinished: false
             };
@@ -553,7 +586,9 @@
             const salary = parseFloat(appState.salary) || 0;
             let totalMortgageMonthly = 0;
             let totalPersonalMonthly = 0;
-            let totalCCMonthly = 0;
+            let totalMortgageLimit = 0;
+            let totalPersonalLimit = 0;
+            let totalCCLimit = 0;
             let totalRemainingDebt = 0;
 
             appState.loans.forEach(loan => {
@@ -562,25 +597,31 @@
 
                 if (loan.type === 'mortgage') {
                     totalMortgageMonthly += status.currentMonthly;
+                    totalMortgageLimit += status.maxMonthly;
                     totalRemainingDebt += status.remainingBalance;
                 } else if (loan.type === 'personal') {
                     totalPersonalMonthly += status.currentMonthly;
+                    totalPersonalLimit += status.maxMonthly;
                     totalRemainingDebt += status.remainingBalance;
                 } else if (loan.type === 'credit_card') {
-                    totalCCMonthly += status.currentMonthly;
+                    totalCCLimit += status.maxMonthly; // Counts toward Limit, NOT Dashboard visual total
                 }
             });
 
-            const totalMonthly = totalMortgageMonthly + totalPersonalMonthly + totalCCMonthly;
-            const nonMortgageMonthly = totalPersonalMonthly + totalCCMonthly;
+            // Display values exclude credit card limits
+            const totalMonthlyDisplayed = totalMortgageMonthly + totalPersonalMonthly;
+            
+            // Limit bars include the highest payments and credit cards
+            const totalMonthlyForLimit = totalMortgageLimit + totalPersonalLimit + totalCCLimit;
+            const nonMortgageForLimit = totalPersonalLimit + totalCCLimit;
 
             // Update Text
-            document.getElementById('totalMonthlyVal').innerText = formatMoney(totalMonthly);
+            document.getElementById('totalMonthlyVal').innerText = formatMoney(totalMonthlyDisplayed);
             document.getElementById('totalDebtVal').innerText = formatMoney(totalRemainingDebt);
 
             // Update Progress Bars
-            const totalLimitPct = salary > 0 ? (totalMonthly / salary) * 100 : 0;
-            const nonMortgageLimitPct = salary > 0 ? (nonMortgageMonthly / salary) * 100 : 0;
+            const totalLimitPct = salary > 0 ? (totalMonthlyForLimit / salary) * 100 : 0;
+            const nonMortgageLimitPct = salary > 0 ? (nonMortgageForLimit / salary) * 100 : 0;
 
             const updateBar = (id, pct, maxLimit) => {
                 const bar = document.getElementById(`${id}Bar`);
@@ -610,19 +651,43 @@
             container.innerHTML = '';
             
             const t = translations[appState.lang];
+            
+            // Helper to generate options up to 35 years (420 months)
+            const getOptions = (selected) => {
+                let html = '';
+                for (let i = 1; i <= 420; i++) {
+                    html += `<option value="${i}" ${i == selected ? 'selected' : ''}>${i}</option>`;
+                }
+                return html;
+            };
 
             currentVariableRules.forEach((rule, index) => {
                 const row = document.createElement('div');
-                row.className = 'flex items-center gap-2 mb-2 bg-white dark:bg-slate-800 p-2 rounded border border-slate-100 dark:border-slate-700';
+                row.className = 'flex items-start gap-2 mb-3 bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm';
                 row.innerHTML = `
-                    <div class="flex-1 grid grid-cols-3 gap-2">
-                        <input type="number" placeholder="${t.months} (From)" value="${rule.from}" data-index="${index}" data-field="from" class="rule-input bg-transparent border-b border-slate-300 dark:border-slate-600 focus:border-brand-500 px-1 text-sm outline-none">
-                        <input type="number" placeholder="${t.to} (To)" value="${rule.to}" data-index="${index}" data-field="to" class="rule-input bg-transparent border-b border-slate-300 dark:border-slate-600 focus:border-brand-500 px-1 text-sm outline-none">
-                        <input type="number" placeholder="${t.amount}" value="${rule.amount}" data-index="${index}" data-field="amount" class="rule-input bg-transparent border-b border-slate-300 dark:border-slate-600 focus:border-brand-500 px-1 text-sm outline-none">
+                    <div class="flex-1 grid grid-cols-3 gap-3">
+                        <div class="flex flex-col">
+                            <label class="text-[10px] text-slate-500 uppercase font-semibold mb-1">${t.fromMonth}</label>
+                            <select data-index="${index}" data-field="from" class="rule-input bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-2 text-sm focus:border-brand-500 outline-none cursor-pointer">
+                                ${getOptions(rule.from)}
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-[10px] text-slate-500 uppercase font-semibold mb-1">${t.toMonth}</label>
+                            <select data-index="${index}" data-field="to" class="rule-input bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-2 text-sm focus:border-brand-500 outline-none cursor-pointer">
+                                ${getOptions(rule.to)}
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-[10px] text-slate-500 uppercase font-semibold mb-1">${t.amountSAR}</label>
+                            <input type="number" step="0.0001" value="${rule.amount}" data-index="${index}" data-field="amount" class="rule-input bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-2 text-sm focus:border-brand-500 outline-none">
+                        </div>
                     </div>
-                    <button type="button" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-1 rounded transition" onclick="removeRule(${index})">
-                        <i class="ph ph-trash"></i>
-                    </button>
+                    <div class="flex flex-col justify-end h-full pt-5">
+                        <button type="button" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-lg transition" onclick="removeRule(${index})">
+                            <i class="ph ph-trash text-lg"></i>
+                        </button>
+                    </div>
                 `;
                 container.appendChild(row);
             });
@@ -664,6 +729,10 @@
                 if (loan.type === 'personal') { icon = 'ph-user'; typeText = t.personal; }
                 if (loan.type === 'credit_card') { icon = 'ph-credit-card'; typeText = t.creditCard; }
 
+                // Format date as DD/MM/YYYY
+                const dateParts = loan.startDate.split('-');
+                const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : loan.startDate;
+
                 const card = document.createElement('div');
                 card.className = 'bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between';
                 
@@ -676,7 +745,7 @@
                                 </div>
                                 <div>
                                     <h3 class="font-bold text-sm">${loan.name}</h3>
-                                    <p class="text-xs text-slate-500">${typeText} &bull; ${loan.startDate}</p>
+                                    <p class="text-xs text-slate-500">${typeText} &bull; ${formattedDate}</p>
                                 </div>
                             </div>
                             <div class="flex gap-1">
@@ -887,7 +956,11 @@
             const tbody = document.getElementById('scheduleTableBody');
             tbody.innerHTML = '';
 
+            let isNegativeAmortization = false;
+
             data.schedule.forEach(row => {
+                if (row.principal < 0) isNegativeAmortization = true;
+                
                 const isCurrentOrPast = row.month <= monthsPassed;
                 const tr = document.createElement('tr');
                 tr.className = `border-b border-slate-100 dark:border-slate-800 ${isCurrentOrPast ? 'bg-slate-50 dark:bg-slate-800/30 text-slate-500' : ''}`;
@@ -895,12 +968,23 @@
                 tr.innerHTML = `
                     <td class="px-4 py-2 font-medium">${row.month} ${isCurrentOrPast && row.month == monthsPassed ? '<span class="text-[10px] bg-brand-100 text-brand-600 px-1 rounded ml-1 rtl:ml-0 rtl:mr-1">Now</span>' : ''}</td>
                     <td class="px-4 py-2">${formatMoney(row.payment)}</td>
-                    <td class="px-4 py-2">${formatMoney(row.principal)}</td>
+                    <td class="px-4 py-2 ${row.principal < 0 ? 'text-red-500 font-bold' : ''}">${formatMoney(row.principal)}</td>
                     <td class="px-4 py-2">${formatMoney(row.interest)}</td>
                     <td class="px-4 py-2 font-bold">${formatMoney(row.balance)}</td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            // Handle Warning Banner display
+            const warningBanner = document.getElementById('modalWarningBanner');
+            if (isNegativeAmortization) {
+                warningBanner.innerText = appState.lang === 'ar' 
+                    ? 'تحذير: القسط أقل من الفائدة (استهلاك سلبي). رصيد القرض يرتفع بدلاً من أن ينخفض.' 
+                    : 'Warning: Your payment is lower than the interest (Negative Amortization). Your debt is increasing.';
+                warningBanner.classList.remove('hidden');
+            } else {
+                warningBanner.classList.add('hidden');
+            }
 
             document.getElementById('scheduleModal').classList.remove('hidden');
             document.getElementById('scheduleModal').classList.add('flex');
