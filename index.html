@@ -1,404 +1,976 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" class="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan & Installment Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Personal Loan & Installment Tracker</title>
+
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LoanTracker">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/2563eb/ffffff?text=LT">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     
+    <!-- Icons (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'Tajawal', 'sans-serif'],
-                    },
                     colors: {
-                        primary: '#3b82f6',
-                        primaryDark: '#2563eb',
-                        darkBg: '#0f172a',
-                        darkCard: '#1e293b',
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        arabic: ['Tajawal', 'system-ui', 'sans-serif']
                     }
                 }
             }
         }
     </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        body { font-family: 'Inter', sans-serif; }
+        html[lang="ar"] body { font-family: 'Tajawal', sans-serif; }
         
-        /* Toggle Switch Animation */
-        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
-        .toggle-checkbox { right: 0; z-index: 1; border-color: #e2e8f0; transition: all 0.3s; }
-        .toggle-label { background-color: #cbd5e1; transition: all 0.3s; }
+        /* Hide scrollbar for clean app-like UI but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* RTL Support for Toggle */
-        [dir="rtl"] .toggle-checkbox { right: auto; left: 0; }
-        [dir="rtl"] .toggle-checkbox:checked { right: auto; left: 0; transform: translateX(100%); }
-
-        body { transition: background-color 0.3s, color 0.3s; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass-panel {
+            background: rgba(30, 41, 59, 0.8);
+        }
+        
+        /* Toggle Switch Styles */
+        .toggle-checkbox:checked { right: 0; border-color: #68D391; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #68D391; }
+        html[dir="rtl"] .toggle-checkbox:checked { right: auto; left: 0; }
+        
+        input, select { outline: none !important; box-shadow: none !important; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 dark:bg-darkBg dark:text-gray-200 min-h-screen">
 
-    <!-- Navbar -->
-    <nav class="bg-white dark:bg-darkCard shadow-sm p-4 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-primary text-white p-2 rounded-lg">
-                    <i class="fa-solid fa-wallet text-xl"></i>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white" data-i18n="app_title">DebtTracker</h1>
-            </div>
-            <div class="flex gap-4 items-center">
-                <button id="lang-toggle" class="text-gray-600 dark:text-gray-300 hover:text-primary font-medium flex items-center gap-2">
-                    <i class="fa-solid fa-language"></i> <span id="lang-text">عربي</span>
-                </button>
-                <button id="theme-toggle" class="text-gray-600 dark:text-gray-300 hover:text-primary text-xl">
-                    <i class="fa-solid fa-moon" id="theme-icon"></i>
-                </button>
-            </div>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-300 pb-20">
+    
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="ph-fill ph-wallet text-brand-600 text-2xl"></i>
+            <h1 class="font-bold text-lg" data-i18n="appTitle">Loan Tracker</h1>
         </div>
-    </nav>
+        <div class="flex items-center gap-4">
+            <button id="langToggle" class="text-sm font-medium hover:text-brand-600 transition-colors">عربي</button>
+            <button id="themeToggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                <i class="ph ph-moon text-xl dark:hidden"></i>
+                <i class="ph ph-sun text-xl hidden dark:block"></i>
+            </button>
+        </div>
+    </header>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto p-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto p-4 space-y-6">
         
-        <!-- Left Column: Add/Edit Form -->
-        <div class="bg-white dark:bg-darkCard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-fit">
-            <h2 class="text-xl font-bold mb-6 flex items-center gap-2 text-gray-900 dark:text-white">
-                <i class="fa-solid fa-plus-circle text-primary"></i> 
-                <span data-i18n="add_record">Add New Record</span>
-            </h2>
+        <!-- Dashboard Section -->
+        <section class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold" data-i18n="dashboardTitle">Financial Dashboard</h2>
+                <div class="flex items-center gap-2">
+                    <label for="salaryInput" class="text-sm text-slate-500" data-i18n="monthlySalary">Monthly Salary</label>
+                    <div class="relative w-32">
+                        <input type="number" id="salaryInput" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm font-medium focus:border-brand-500" value="0">
+                        <span class="absolute top-1.5 right-3 text-xs text-slate-400 font-bold rtl:right-auto rtl:left-3">SAR</span>
+                    </div>
+                </div>
+            </div>
 
-            <form id="record-form" class="space-y-5">
-                <!-- Record Type Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-xl border border-brand-100 dark:border-brand-900/50">
+                    <p class="text-sm text-brand-600 dark:text-brand-400 font-medium mb-1" data-i18n="totalMonthlyPayments">Total Monthly Payments</p>
+                    <p class="text-2xl font-bold text-brand-900 dark:text-brand-100" id="totalMonthlyVal">0.00 SAR</p>
+                </div>
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
+                    <p class="text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1" data-i18n="totalRemainingDebt">Total Remaining Debt</p>
+                    <p class="text-2xl font-bold text-emerald-900 dark:text-emerald-100" id="totalDebtVal">0.00 SAR</p>
+                </div>
+            </div>
+
+            <!-- DBR Progress Bars -->
+            <div class="space-y-4">
+                <!-- Total Debt Limit -->
                 <div>
-                    <label class="block text-sm font-semibold mb-3" data-i18n="record_type">Record Type</label>
-                    <div class="grid grid-cols-3 gap-3">
-                        <div class="type-card cursor-pointer border-2 border-primary bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 flex flex-col items-center gap-2 transition-all" data-type="mortgage">
-                            <i class="fa-solid fa-house text-primary text-xl"></i>
-                            <span class="text-xs font-semibold text-center" data-i18n="type_mortgage">Mortgage</span>
-                        </div>
-                        <div class="type-card cursor-pointer border-2 border-gray-200 dark:border-gray-700 rounded-xl p-3 flex flex-col items-center gap-2 transition-all opacity-60 hover:opacity-100" data-type="personal">
-                            <i class="fa-solid fa-car text-green-500 text-xl"></i>
-                            <span class="text-xs font-semibold text-center" data-i18n="type_personal">Personal</span>
-                        </div>
-                        <div class="type-card cursor-pointer border-2 border-gray-200 dark:border-gray-700 rounded-xl p-3 flex flex-col items-center gap-2 transition-all opacity-60 hover:opacity-100" data-type="cc">
-                            <i class="fa-solid fa-credit-card text-purple-500 text-xl"></i>
-                            <span class="text-xs font-semibold text-center" data-i18n="type_cc">Credit Card</span>
-                        </div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="font-medium" data-i18n="totalDebtLimit">Total Debt Limit (65%)</span>
+                        <span id="totalLimitTxt" class="font-bold">0%</span>
                     </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                        <div id="totalLimitBar" class="bg-brand-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <p id="totalLimitWarn" class="text-xs text-red-500 mt-1 hidden" data-i18n="limitExceeded">Warning: Limit Exceeded</p>
                 </div>
 
-                <!-- Record Name -->
+                <!-- Non-Mortgage Limit -->
                 <div>
-                    <label class="block text-sm font-medium mb-1" data-i18n="record_name">Record Name</label>
-                    <input type="text" id="record-name" required class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary outline-none transition-all">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="font-medium" data-i18n="nonMortgageLimit">Non-Mortgage Limit (45%)</span>
+                        <span id="nonMortgageLimitTxt" class="font-bold">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                        <div id="nonMortgageLimitBar" class="bg-brand-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <p id="nonMortgageLimitWarn" class="text-xs text-red-500 mt-1 hidden" data-i18n="limitExceeded">Warning: Limit Exceeded</p>
                 </div>
+            </div>
+        </section>
 
-                <!-- Fields for Credit Card -->
-                <div id="cc-fields" class="hidden">
-                    <label class="block text-sm font-medium mb-1" data-i18n="cc_impact">Monthly DBR Impact</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500" data-i18n="currency">SAR</span>
-                        <input type="number" id="cc-impact" min="0" step="0.01" class="w-full p-3 pl-12 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary outline-none">
-                    </div>
-                </div>
-
-                <!-- Fields for Loans (Mortgage/Personal) -->
-                <div id="loan-fields" class="space-y-5">
-                    <!-- Principal -->
-                    <div>
-                        <label class="block text-sm font-medium mb-1" data-i18n="principal">Principal Amount</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500" data-i18n="currency">SAR</span>
-                            <input type="number" id="loan-principal" min="1" step="0.01" class="w-full p-3 pl-12 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-primary outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Installment Type Toggle -->
-                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <span class="text-sm font-medium" data-i18n="inst_type">Installment Type</span>
-                        <div class="flex items-center gap-3">
-                            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300" id="label-fixed" data-i18n="fixed">Fixed</span>
-                            
-                            <!-- Toggle UI -->
-                            <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" name="toggle" id="type-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                                <label for="type-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                            </div>
-
-                            <span class="text-sm text-gray-400" id="label-variable" data-i18n="variable">Variable</span>
-                        </div>
-                    </div>
-
-                    <!-- Interest & Duration (Common) -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-1" data-i18n="interest">Interest Rate (%)</label>
-                            <input type="number" id="loan-interest" min="0" step="0.01" value="0" class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1" data-i18n="duration">Duration (Months)</label>
-                            <input type="number" id="loan-duration" min="1" class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Start Date -->
-                    <div>
-                        <label class="block text-sm font-medium mb-1" data-i18n="start_date">Start Date</label>
-                        <input type="date" id="loan-start" class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 outline-none">
-                    </div>
-
-                    <!-- Variable Rules Section (Hidden by default) -->
-                    <div id="variable-section" class="hidden p-4 border border-blue-200 bg-blue-50 dark:bg-blue-900/10 dark:border-blue-800 rounded-lg space-y-3">
-                        <h3 class="text-sm font-semibold text-primary" data-i18n="var_rules">Payment Schedule Rules</h3>
-                        <div id="rules-container" class="space-y-2">
-                            <!-- Rules generated dynamically -->
-                        </div>
-                        <div class="flex gap-2">
-                            <input type="number" id="rule-end" placeholder="End Month" class="w-1/3 p-2 text-sm rounded bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-                            <input type="number" id="rule-amount" placeholder="Amount (SAR)" class="w-1/3 p-2 text-sm rounded bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-                            <button type="button" id="btn-add-rule" class="w-1/3 bg-primary text-white text-sm rounded hover:bg-primaryDark transition">Add Rule</button>
-                        </div>
-                        <p class="text-xs text-gray-500" data-i18n="rule_hint">*Periods must cover the full duration.</p>
-                    </div>
-                </div>
-
-                <button type="submit" id="btn-save" class="w-full bg-primary hover:bg-primaryDark text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-save"></i> <span data-i18n="save_record">Save Record</span>
-                </button>
-            </form>
-        </div>
-
-        <!-- Right Column: Dashboard & Records -->
-        <div class="lg:col-span-2 space-y-6">
+        <!-- Add/Edit Record Form -->
+        <section class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold" id="formTitle" data-i18n="addNewRecord">Add New Record</h2>
+                <button id="cancelEditBtn" class="hidden text-sm text-red-500 font-medium" data-i18n="cancel">Cancel</button>
+            </div>
             
-            <!-- Dashboard Card -->
-            <div class="bg-white dark:bg-darkCard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                    <h2 class="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
-                        <i class="fa-solid fa-chart-pie text-primary"></i> 
-                        <span data-i18n="dashboard">Dashboard & Limits</span>
-                    </h2>
-                    <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <label class="text-sm font-medium" data-i18n="salary">Monthly Salary:</label>
-                        <span class="text-gray-500 text-sm" data-i18n="currency">SAR</span>
-                        <input type="number" id="user-salary" class="w-24 bg-transparent outline-none font-bold text-gray-900 dark:text-white" value="20000">
-                    </div>
+            <form id="loanForm" class="space-y-5">
+                <input type="hidden" id="editLoanId" value="">
+
+                <!-- Record Types -->
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="cursor-pointer relative">
+                        <input type="radio" name="loanType" value="mortgage" class="peer sr-only" checked>
+                        <div class="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-center peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-900/30 transition-all">
+                            <i class="ph ph-house text-2xl mb-1 text-slate-500 peer-checked:text-brand-600"></i>
+                            <p class="text-xs font-bold" data-i18n="mortgage">Mortgage</p>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer relative">
+                        <input type="radio" name="loanType" value="personal" class="peer sr-only">
+                        <div class="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-center peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-900/30 transition-all">
+                            <i class="ph ph-user text-2xl mb-1 text-slate-500 peer-checked:text-brand-600"></i>
+                            <p class="text-xs font-bold" data-i18n="personal">Personal</p>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer relative">
+                        <input type="radio" name="loanType" value="credit_card" class="peer sr-only">
+                        <div class="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-center peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-900/30 transition-all">
+                            <i class="ph ph-credit-card text-2xl mb-1 text-slate-500 peer-checked:text-brand-600"></i>
+                            <p class="text-xs font-bold" data-i18n="creditCard">Credit Card</p>
+                        </div>
+                    </label>
                 </div>
 
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                    <div class="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-xl border border-blue-100 dark:border-blue-800">
-                        <p class="text-sm text-blue-600 dark:text-blue-400 font-semibold mb-1" data-i18n="total_debt">Total Remaining Debt</p>
-                        <h3 class="text-3xl font-bold text-blue-700 dark:text-blue-300" id="dash-total-debt">0</h3>
-                        <p class="text-xs text-blue-500 mt-1" data-i18n="exclude_cc">*Excluding credit cards</p>
-                    </div>
-                    <div class="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-xl border border-purple-100 dark:border-purple-800">
-                        <p class="text-sm text-purple-600 dark:text-purple-400 font-semibold mb-1" data-i18n="total_monthly">Total Monthly Payment</p>
-                        <h3 class="text-3xl font-bold text-purple-700 dark:text-purple-300" id="dash-total-monthly">0</h3>
-                        <p class="text-xs text-purple-500 mt-1" data-i18n="include_cc">*Including credit card impact</p>
-                    </div>
-                </div>
-
-                <!-- Limits Progress -->
-                <div class="space-y-5">
+                <!-- Common Info -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <div class="flex justify-between text-sm mb-2">
-                            <span class="font-semibold text-gray-700 dark:text-gray-300" data-i18n="limit_total">Total Debt Limit (65%)</span>
-                            <span class="font-bold" id="limit-total-pct">0%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                            <div id="bar-total" class="bg-green-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                        <p id="msg-total" class="text-xs mt-1 text-gray-500">--</p>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="loanName">Record Name</label>
+                        <input type="text" id="loanName" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
                     </div>
-
                     <div>
-                        <div class="flex justify-between text-sm mb-2">
-                            <span class="font-semibold text-gray-700 dark:text-gray-300" data-i18n="limit_non">Non-Mortgage Limit (45%)</span>
-                            <span class="font-bold" id="limit-non-pct">0%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                            <div id="bar-non" class="bg-green-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                        <p id="msg-non" class="text-xs mt-1 text-gray-500">--</p>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="startDate">Start Date</label>
+                        <input type="date" id="startDate" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
                     </div>
                 </div>
-            </div>
 
-            <!-- Active Records List -->
-            <div>
-                <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white" data-i18n="active_records">Your Active Records</h3>
-                <div id="records-list" class="space-y-4">
-                    <!-- Cards will be injected here via JS -->
+                <!-- Credit Card Specific -->
+                <div id="ccFields" class="hidden">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="monthlyDbrImpact">Monthly DBR Impact (SAR)</label>
+                        <input type="number" id="ccImpact" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500">
+                        <p class="text-xs text-slate-400 mt-1" data-i18n="ccHint">Counts towards limits but does not add to total remaining debt.</p>
+                    </div>
                 </div>
-            </div>
 
-        </div>
+                <!-- Standard Loan Fields (Mortgage/Personal) -->
+                <div id="standardFields" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="principal">Principal (SAR)</label>
+                            <input type="number" id="principal" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="interestRate">Interest Rate (%)</label>
+                            <input type="number" id="interestRate" step="0.01" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="durationMonths">Duration (Months)</label>
+                            <input type="number" id="duration" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-500">
+                        </div>
+                    </div>
+
+                    <!-- Fixed / Variable Toggle -->
+                    <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <span class="text-sm font-medium" data-i18n="installmentType">Installment Type</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-semibold text-slate-500" data-i18n="fixed">Fixed</span>
+                            <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="isVariable" id="isVariable" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 z-10 top-0 left-0 m-0"/>
+                                <label for="isVariable" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 dark:bg-slate-600 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-500" data-i18n="variable">Variable</span>
+                        </div>
+                    </div>
+
+                    <!-- Variable Rules Builder -->
+                    <div id="variableRulesContainer" class="hidden bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-sm font-bold" data-i18n="variableRules">Variable Timeframes</h3>
+                            <button type="button" id="addRuleBtn" class="text-xs bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-300 px-2 py-1 rounded hover:bg-brand-200 transition">
+                                + <span data-i18n="addTimeframe">Add Timeframe</span>
+                            </button>
+                        </div>
+                        <div id="rulesList" class="space-y-2">
+                            <!-- Rules will be injected here via JS -->
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2" data-i18n="variableHint">Specify monthly payment amounts for custom timeframes. Unspecified months will default to Interest-Only payments.</p>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl transition-colors" data-i18n="saveRecord">Save Record</button>
+            </form>
+        </section>
+
+        <!-- Saved Records List -->
+        <section>
+            <h2 class="text-lg font-bold mb-4" data-i18n="savedRecords">Saved Records</h2>
+            <div id="loansContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Loan cards injected via JS -->
+            </div>
+            
+            <div id="emptyState" class="hidden text-center py-10 opacity-60">
+                <i class="ph ph-folder-dashed text-5xl mb-2"></i>
+                <p data-i18n="noRecords">No records found. Add one above.</p>
+            </div>
+        </section>
+
     </main>
 
-    <!-- Amortization Modal -->
-    <div id="schedule-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4 transition-opacity">
-        <div class="bg-white dark:bg-darkCard w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
-                <h3 class="text-lg font-bold" id="modal-title">Schedule</h3>
-                <button onclick="closeModal()" class="text-gray-500 hover:text-red-500 text-xl transition-colors">
-                    <i class="fa-solid fa-times"></i>
+    <!-- Schedule Modal -->
+    <div id="scheduleModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" id="modalBackdrop"></div>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-2xl max-h-[85vh] rounded-2xl shadow-2xl relative flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h3 class="font-bold text-lg" data-i18n="amortizationSchedule">Amortization Schedule</h3>
+                <button id="closeModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="ph ph-x text-xl"></i>
                 </button>
             </div>
-            <div class="p-0 overflow-y-auto flex-1">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 sticky top-0 z-10">
+            
+            <!-- Summary Stats in Modal -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 p-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 text-sm">
+                <div>
+                    <p class="text-slate-500 text-xs" data-i18n="paidSoFar">Paid So Far</p>
+                    <p class="font-bold text-brand-600" id="modalPaidSoFar">0 SAR</p>
+                </div>
+                <div>
+                    <p class="text-slate-500 text-xs" data-i18n="totalInterest">Total Interest</p>
+                    <p class="font-bold text-red-500" id="modalTotalInterest">0 SAR</p>
+                </div>
+                <div>
+                    <p class="text-slate-500 text-xs" data-i18n="remainingBal">Remaining Bal.</p>
+                    <p class="font-bold" id="modalRemaining">0 SAR</p>
+                </div>
+                <div>
+                    <p class="text-slate-500 text-xs" data-i18n="monthsLeft">Months Left</p>
+                    <p class="font-bold" id="modalMonthsLeft">0</p>
+                </div>
+            </div>
+
+            <div class="overflow-y-auto flex-1 p-0 no-scrollbar">
+                <table class="w-full text-sm text-left rtl:text-right">
+                    <thead class="text-xs text-slate-500 bg-slate-50 dark:bg-slate-900 sticky top-0 shadow-sm">
                         <tr>
-                            <th class="p-3 border-b dark:border-gray-700" data-i18n="month">Month</th>
-                            <th class="p-3 border-b dark:border-gray-700" data-i18n="payment">Payment</th>
-                            <th class="p-3 border-b dark:border-gray-700" data-i18n="principal_paid">Principal</th>
-                            <th class="p-3 border-b dark:border-gray-700" data-i18n="interest_paid">Interest</th>
-                            <th class="p-3 border-b dark:border-gray-700" data-i18n="balance">Balance</th>
-                            <th class="p-3 border-b dark:border-gray-700 text-center" data-i18n="status">Status</th>
+                            <th class="px-4 py-3" data-i18n="month">M</th>
+                            <th class="px-4 py-3" data-i18n="payment">Payment</th>
+                            <th class="px-4 py-3" data-i18n="principal">Principal</th>
+                            <th class="px-4 py-3" data-i18n="interest">Interest</th>
+                            <th class="px-4 py-3" data-i18n="balance">Balance</th>
                         </tr>
                     </thead>
-                    <tbody id="schedule-body" class="divide-y divide-gray-100 dark:divide-gray-800">
-                        <!-- Rows injected here -->
+                    <tbody id="scheduleTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <!-- Rows injected via JS -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
-    <script>
-        let records = JSON.parse(localStorage.getItem('dt_records')) || [];
-        let currentLang = localStorage.getItem('dt_lang') || 'en';
-        let currentType = 'mortgage';
-        let isVariable = false;
-        let editId = null;
-        let variableRules = [];
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-4 py-2 rounded-lg shadow-lg text-sm font-medium transition-all duration-300 opacity-0 pointer-events-none translate-y-4 z-50 flex items-center gap-2">
+        <i class="ph ph-check-circle text-green-400 dark:text-green-600 text-lg"></i>
+        <span id="toastMsg">Action successful</span>
+    </div>
 
-        // Dictionary for translations
-        const dict = {
+    <script>
+        // --- State Management ---
+        let appState = {
+            salary: 0,
+            loans: [],
+            lang: 'en',
+            theme: 'light'
+        };
+
+        let currentVariableRules = [];
+
+        // --- I18n Dictionary ---
+        const translations = {
             en: {
-                app_title: "DebtTracker", add_record: "Add New Record", record_type: "Record Type",
-                type_mortgage: "Mortgage", type_personal: "Personal", type_cc: "Credit Card",
-                record_name: "Record Name", cc_impact: "Monthly DBR Impact", currency: "SAR",
-                principal: "Principal Amount", inst_type: "Installment Type", fixed: "Fixed", variable: "Variable",
-                interest: "Interest Rate (%)", duration: "Duration (Months)", start_date: "Start Date",
-                var_rules: "Payment Schedule Rules", rule_hint: "*Periods must cover the full duration.",
-                save_record: "Save Record", update_record: "Update Record", dashboard: "Dashboard & Limits",
-                salary: "Monthly Salary:", total_debt: "Total Remaining Debt", exclude_cc: "*Excluding credit cards",
-                total_monthly: "Total Monthly Payment", include_cc: "*Including credit card impact",
-                limit_total: "Total Debt Limit (65%)", limit_non: "Non-Mortgage Limit (45%)",
-                active_records: "Your Active Records", month: "Month", payment: "Payment",
-                principal_paid: "Principal", interest_paid: "Interest", balance: "Balance", status: "Status",
-                paid: "PAID", pending: "PENDING", edit: "Edit", delete: "Delete", view_schedule: "View Schedule",
-                safe: "Safe limit", warning: "Limit exceeded!", cc_tag: "Credit Card (Impact only)"
+                appTitle: "Loan Tracker",
+                dashboardTitle: "Financial Dashboard",
+                monthlySalary: "Monthly Salary",
+                totalMonthlyPayments: "Total Monthly Payments",
+                totalRemainingDebt: "Total Remaining Debt",
+                totalDebtLimit: "Total Debt Limit (65%)",
+                nonMortgageLimit: "Non-Mortgage Limit (45%)",
+                limitExceeded: "Warning: Limit Exceeded",
+                addNewRecord: "Add New Record",
+                editRecord: "Edit Record",
+                cancel: "Cancel",
+                mortgage: "Mortgage",
+                personal: "Personal",
+                creditCard: "Credit Card",
+                loanName: "Record Name",
+                startDate: "Start Date",
+                monthlyDbrImpact: "Monthly DBR Impact (SAR)",
+                ccHint: "Counts towards limits but does not add to total remaining debt.",
+                principal: "Principal (SAR)",
+                interestRate: "Interest Rate (%)",
+                durationMonths: "Duration (Months)",
+                installmentType: "Installment Type",
+                fixed: "Fixed",
+                variable: "Variable",
+                variableRules: "Variable Timeframes",
+                addTimeframe: "Add Timeframe",
+                variableHint: "Specify monthly payment amounts for custom timeframes. Unspecified months will default to Interest-Only payments.",
+                saveRecord: "Save Record",
+                savedRecords: "Saved Records",
+                noRecords: "No records found. Add one above.",
+                amortizationSchedule: "Amortization Schedule",
+                paidSoFar: "Paid So Far",
+                totalInterest: "Total Interest",
+                remainingBal: "Remaining Bal.",
+                monthsLeft: "Months Left",
+                month: "Month",
+                payment: "Payment",
+                interest: "Interest",
+                balance: "Balance",
+                editBtn: "Edit",
+                viewBtn: "View Schedule",
+                deleteBtn: "Delete",
+                recordSaved: "Record saved successfully!",
+                recordDeleted: "Record deleted.",
+                months: "Months",
+                to: "to",
+                amount: "Amount"
             },
             ar: {
-                app_title: "متتبع الديون", add_record: "إضافة سجل جديد", record_type: "نوع السجل",
-                type_mortgage: "عقاري", type_personal: "شخصي", type_cc: "بطاقة ائتمانية",
-                record_name: "اسم السجل", cc_impact: "التأثير الشهري على الحد", currency: "ر.س",
-                principal: "مبلغ القرض الأساسي", inst_type: "نوع القسط", fixed: "ثابت", variable: "متغير",
-                interest: "نسبة الفائدة (%)", duration: "المدة (بالأشهر)", start_date: "تاريخ البدء",
-                var_rules: "قواعد جدول المدفوعات", rule_hint: "*يجب أن تغطي الفترات المدة كاملة.",
-                save_record: "حفظ السجل", update_record: "تحديث السجل", dashboard: "لوحة المعلومات والحدود",
-                salary: "الراتب الشهري:", total_debt: "إجمالي الدين المتبقي", exclude_cc: "*لا يشمل البطاقات",
-                total_monthly: "إجمالي الدفعات الشهرية", include_cc: "*يشمل تأثير البطاقات",
-                limit_total: "حد إجمالي الديون (65%)", limit_non: "حد القروض غير العقارية (45%)",
-                active_records: "سجلاتك النشطة", month: "الشهر", payment: "الدفعة",
-                principal_paid: "الأساس", interest_paid: "الفائدة", balance: "الرصيد", status: "الحالة",
-                paid: "مدفوع", pending: "قادم", edit: "تعديل", delete: "حذف", view_schedule: "عرض الجدول",
-                safe: "ضمن الحد الآمن", warning: "تم تجاوز الحد!", cc_tag: "بطاقة ائتمان (تأثير فقط)"
+                appTitle: "متتبع القروض",
+                dashboardTitle: "لوحة التحكم المالية",
+                monthlySalary: "الراتب الشهري",
+                totalMonthlyPayments: "إجمالي المدفوعات الشهرية",
+                totalRemainingDebt: "إجمالي الديون المتبقية",
+                totalDebtLimit: "حد إجمالي الديون (65%)",
+                nonMortgageLimit: "الحد غير العقاري (45%)",
+                limitExceeded: "تحذير: تم تجاوز الحد",
+                addNewRecord: "إضافة سجل جديد",
+                editRecord: "تعديل السجل",
+                cancel: "إلغاء",
+                mortgage: "عقاري",
+                personal: "شخصي",
+                creditCard: "بطاقة ائتمان",
+                loanName: "اسم السجل",
+                startDate: "تاريخ البدء",
+                monthlyDbrImpact: "تأثير الاستقطاع الشهري (ريال)",
+                ccHint: "يُحسب ضمن الحدود ولكنه لا يضيف إلى إجمالي الديون المتبقية.",
+                principal: "المبلغ الأساسي (ريال)",
+                interestRate: "نسبة الفائدة (%)",
+                durationMonths: "المدة (بالأشهر)",
+                installmentType: "نوع القسط",
+                fixed: "ثابت",
+                variable: "متغير",
+                variableRules: "الأطر الزمنية المتغيرة",
+                addTimeframe: "إضافة إطار زمني",
+                variableHint: "حدد مبالغ الدفع الشهرية. الأشهر غير المحددة ستكون للفائدة فقط.",
+                saveRecord: "حفظ السجل",
+                savedRecords: "السجلات المحفوظة",
+                noRecords: "لا توجد سجلات. أضف واحداً بالأعلى.",
+                amortizationSchedule: "جدول الإطفاء",
+                paidSoFar: "المدفوع حتى الآن",
+                totalInterest: "إجمالي الفائدة",
+                remainingBal: "الرصيد المتبقي",
+                monthsLeft: "الأشهر المتبقية",
+                month: "شهر",
+                payment: "الدفعة",
+                interest: "الفائدة",
+                balance: "الرصيد",
+                editBtn: "تعديل",
+                viewBtn: "عرض الجدول",
+                deleteBtn: "حذف",
+                recordSaved: "تم حفظ السجل بنجاح!",
+                recordDeleted: "تم حذف السجل.",
+                months: "أشهر",
+                to: "إلى",
+                amount: "المبلغ"
             }
         };
 
-        const els = {
-            form: document.getElementById('record-form'),
-            typeCards: document.querySelectorAll('.type-card'),
-            ccFields: document.getElementById('cc-fields'),
-            loanFields: document.getElementById('loan-fields'),
-            name: document.getElementById('record-name'),
-            ccImpact: document.getElementById('cc-impact'),
-            principal: document.getElementById('loan-principal'),
-            toggle: document.getElementById('type-toggle'),
-            labelFixed: document.getElementById('label-fixed'),
-            labelVariable: document.getElementById('label-variable'),
-            interest: document.getElementById('loan-interest'),
-            duration: document.getElementById('loan-duration'),
-            start: document.getElementById('loan-start'),
-            varSection: document.getElementById('variable-section'),
-            rulesContainer: document.getElementById('rules-container'),
-            ruleEnd: document.getElementById('rule-end'),
-            ruleAmount: document.getElementById('rule-amount'),
-            btnAddRule: document.getElementById('btn-add-rule'),
-            btnSave: document.getElementById('btn-save'),
-            salary: document.getElementById('user-salary'),
-            recordsList: document.getElementById('records-list')
+        // --- Utility Functions ---
+        const formatMoney = (amount) => {
+            const loc = appState.lang === 'ar' ? 'ar-SA' : 'en-SA';
+            return new Intl.NumberFormat(loc, { style: 'currency', currency: 'SAR', minimumFractionDigits: 0 }).format(amount);
         };
 
-        function initEvents() {
-            // Theme setup
-            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            }
-            document.getElementById('theme-toggle').addEventListener('click', () => {
-                document.documentElement.classList.toggle('dark');
-                localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-                updateThemeIcon();
-            });
-            updateThemeIcon();
+        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
 
-            // Language setup
-            document.getElementById('lang-toggle').addEventListener('click', () => {
-                currentLang = currentLang === 'en' ? 'ar' : 'en';
-                localStorage.setItem('dt_lang', currentLang);
-                applyLanguage();
-            });
+        const getMonthsPassed = (startDateStr) => {
+            if (!startDateStr) return 0;
+            const start = new Date(startDateStr);
+            const now = new Date();
+            const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+            return Math.max(0, months);
+        };
 
-            // Type Selection (Mortgage / Personal / CC)
-            els.typeCards.forEach(card => {
-                card.addEventListener('click', () => {
-                    els.typeCards.forEach(c => {
-                        c.classList.remove('border-primary', 'bg-blue-50', 'dark:bg-blue-900/20');
-                        c.classList.add('border-gray-200', 'dark:border-gray-700', 'opacity-60');
-                    });
-                    card.classList.remove('border-gray-200', 'dark:border-gray-700', 'opacity-60');
-                    card.classList.add('border-primary', 'bg-blue-50', 'dark:bg-blue-900/20');
-                    
-                    currentType = card.dataset.type;
-                    if (currentType === 'cc') {
-                        els.loanFields.classList.add('hidden');
-                        els.ccFields.classList.remove('hidden');
-                        els.principal.removeAttribute('required');
-                        els.duration.removeAttribute('required');
-                        els.start.removeAttribute('required');
-                        els.ccImpact.setAttribute('required', 'true');
+        const showToast = (msgKey) => {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = translations[appState.lang][msgKey];
+            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }, 3000);
+        };
+
+        // --- STREAMING_CHUNK:Implementing Financial Engine Math... ---
+        // Calculate standard fixed monthly payment
+        const calcPMT = (principal, monthlyRate, months) => {
+            if (monthlyRate === 0) return principal / months;
+            return principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+        };
+
+        // Core Financial Engine - Generate Amortization Schedule
+        const calculateAmortization = (loan) => {
+            if (loan.type === 'credit_card') return null;
+
+            const principal = parseFloat(loan.principal) || 0;
+            const annualRate = parseFloat(loan.interestRate) || 0;
+            const duration = parseInt(loan.duration) || 1;
+            const monthlyRate = (annualRate / 100) / 12;
+            
+            let balance = principal;
+            let schedule = [];
+            let totalInterest = 0;
+            let fixedPayment = loan.installmentType === 'fixed' ? calcPMT(principal, monthlyRate, duration) : 0;
+
+            for (let i = 1; i <= duration; i++) {
+                if (balance <= 0) break;
+
+                let interest = balance * monthlyRate;
+                let payment = 0;
+
+                if (loan.installmentType === 'fixed') {
+                    payment = fixedPayment;
+                } else {
+                    // Variable: find matching rule
+                    let rule = loan.variableRules.find(r => i >= r.from && i <= r.to);
+                    if (rule) {
+                        payment = parseFloat(rule.amount);
                     } else {
-                        els.loanFields.classList.remove('hidden');
-                        els.ccFields.classList.add('hidden');
-                        els.principal.setAttribute('required', 'true');
-                        els.duration.setAttribute('required', 'true');
-                        els.start.setAttribute('required', 'true');
-                        els.ccImpact.removeAttribute('required');
+                        // Default to covering just interest to avoid negative amortization if unspecified
+                        payment = interest;
+                    }
+                }
+
+                // Final month adjustment
+                let principalPayment = payment - interest;
+                if (balance - principalPayment < 0) {
+                    principalPayment = balance;
+                    payment = principalPayment + interest;
+                }
+
+                balance -= principalPayment;
+                totalInterest += interest;
+
+                schedule.push({
+                    month: i,
+                    payment: payment,
+                    principal: principalPayment,
+                    interest: interest,
+                    balance: Math.max(0, balance)
+                });
+            }
+
+            return { schedule, totalInterest, fixedPayment };
+        };
+
+        const getLoanStatus = (loan) => {
+            if (loan.type === 'credit_card') {
+                return { currentMonthly: parseFloat(loan.ccImpact) || 0, remainingBalance: 0, paidSoFar: 0, isFinished: false };
+            }
+
+            const data = calculateAmortization(loan);
+            if (!data) return null;
+
+            const monthsPassed = getMonthsPassed(loan.startDate);
+            
+            if (monthsPassed >= data.schedule.length) {
+                // Loan is finished
+                const totalPaid = data.schedule.reduce((acc, row) => acc + row.payment, 0);
+                return { currentMonthly: 0, remainingBalance: 0, paidSoFar: totalPaid, isFinished: true };
+            }
+
+            // Loan is active
+            let paidSoFar = 0;
+            for (let i = 0; i < monthsPassed; i++) {
+                paidSoFar += data.schedule[i].payment;
+            }
+
+            const currentMonthData = data.schedule[monthsPassed] || data.schedule[data.schedule.length - 1];
+            const remainingBalance = data.schedule[monthsPassed > 0 ? monthsPassed - 1 : 0].balance;
+
+            return { 
+                currentMonthly: currentMonthData.payment, 
+                remainingBalance: remainingBalance, 
+                paidSoFar: paidSoFar,
+                isFinished: false
+            };
+        };
+
+
+        // --- STREAMING_CHUNK:Building UI Update Functions (Dashboard & Forms)... ---
+        const updateDashboard = () => {
+            const salary = parseFloat(appState.salary) || 0;
+            let totalMortgageMonthly = 0;
+            let totalPersonalMonthly = 0;
+            let totalCCMonthly = 0;
+            let totalRemainingDebt = 0;
+
+            appState.loans.forEach(loan => {
+                const status = getLoanStatus(loan);
+                if (!status || status.isFinished && loan.type !== 'credit_card') return;
+
+                if (loan.type === 'mortgage') {
+                    totalMortgageMonthly += status.currentMonthly;
+                    totalRemainingDebt += status.remainingBalance;
+                } else if (loan.type === 'personal') {
+                    totalPersonalMonthly += status.currentMonthly;
+                    totalRemainingDebt += status.remainingBalance;
+                } else if (loan.type === 'credit_card') {
+                    totalCCMonthly += status.currentMonthly;
+                }
+            });
+
+            const totalMonthly = totalMortgageMonthly + totalPersonalMonthly + totalCCMonthly;
+            const nonMortgageMonthly = totalPersonalMonthly + totalCCMonthly;
+
+            // Update Text
+            document.getElementById('totalMonthlyVal').innerText = formatMoney(totalMonthly);
+            document.getElementById('totalDebtVal').innerText = formatMoney(totalRemainingDebt);
+
+            // Update Progress Bars
+            const totalLimitPct = salary > 0 ? (totalMonthly / salary) * 100 : 0;
+            const nonMortgageLimitPct = salary > 0 ? (nonMortgageMonthly / salary) * 100 : 0;
+
+            const updateBar = (id, pct, maxLimit) => {
+                const bar = document.getElementById(`${id}Bar`);
+                const txt = document.getElementById(`${id}Txt`);
+                const warn = document.getElementById(`${id}Warn`);
+                
+                bar.style.width = `${Math.min(pct, 100)}%`;
+                txt.innerText = `${pct.toFixed(1)}%`;
+                
+                if (pct > maxLimit) {
+                    bar.classList.replace('bg-brand-500', 'bg-red-500');
+                    txt.classList.add('text-red-500');
+                    warn.classList.remove('hidden');
+                } else {
+                    bar.classList.replace('bg-red-500', 'bg-brand-500');
+                    txt.classList.remove('text-red-500');
+                    warn.classList.add('hidden');
+                }
+            };
+
+            updateBar('totalLimit', totalLimitPct, 65);
+            updateBar('nonMortgageLimit', nonMortgageLimitPct, 45);
+        };
+
+        const renderVariableRules = () => {
+            const container = document.getElementById('rulesList');
+            container.innerHTML = '';
+            
+            const t = translations[appState.lang];
+
+            currentVariableRules.forEach((rule, index) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 mb-2 bg-white dark:bg-slate-800 p-2 rounded border border-slate-100 dark:border-slate-700';
+                row.innerHTML = `
+                    <div class="flex-1 grid grid-cols-3 gap-2">
+                        <input type="number" placeholder="${t.months} (From)" value="${rule.from}" data-index="${index}" data-field="from" class="rule-input bg-transparent border-b border-slate-300 dark:border-slate-600 focus:border-brand-500 px-1 text-sm outline-none">
+                        <input type="number" placeholder="${t.to} (To)" value="${rule.to}" data-index="${index}" data-field="to" class="rule-input bg-transparent border-b border-slate-300 dark:border-slate-600 focus:border-brand-500 px-1 text-sm outline-none">
+                        <input type="number" placeholder="${t.amount}" value="${rule.amount}" data-index="${index}" data-field="amount" class="rule-input bg-transparent border-b border-slate-300 dark:border-slate-600 focus:border-brand-500 px-1 text-sm outline-none">
+                    </div>
+                    <button type="button" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-1 rounded transition" onclick="removeRule(${index})">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                `;
+                container.appendChild(row);
+            });
+
+            // Bind events for rule inputs
+            document.querySelectorAll('.rule-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index);
+                    const field = e.target.dataset.field;
+                    currentVariableRules[idx][field] = e.target.value;
+                });
+            });
+        };
+
+        window.removeRule = (index) => {
+            currentVariableRules.splice(index, 1);
+            renderVariableRules();
+        };
+
+        const renderLoansList = () => {
+            const container = document.getElementById('loansContainer');
+            const emptyState = document.getElementById('emptyState');
+            container.innerHTML = '';
+            
+            if (appState.loans.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            const t = translations[appState.lang];
+
+            appState.loans.forEach(loan => {
+                const status = getLoanStatus(loan);
+                const isCC = loan.type === 'credit_card';
+                
+                let icon = 'ph-house';
+                let typeText = t.mortgage;
+                if (loan.type === 'personal') { icon = 'ph-user'; typeText = t.personal; }
+                if (loan.type === 'credit_card') { icon = 'ph-credit-card'; typeText = t.creditCard; }
+
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between';
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-brand-50 dark:bg-slate-700 p-2 rounded-lg text-brand-600 dark:text-brand-400">
+                                    <i class="ph ${icon} text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-sm">${loan.name}</h3>
+                                    <p class="text-xs text-slate-500">${typeText} &bull; ${loan.startDate}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="editLoan('${loan.id}')" class="text-slate-400 hover:text-brand-500 p-1" title="${t.editBtn}"><i class="ph ph-pencil-simple"></i></button>
+                                <button onclick="deleteLoan('${loan.id}')" class="text-slate-400 hover:text-red-500 p-1" title="${t.deleteBtn}"><i class="ph ph-trash"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2 mb-4 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
+                            <div>
+                                <p class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Monthly Payment</p>
+                                <p class="font-bold text-brand-600 text-sm">${formatMoney(status.currentMonthly)}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Remaining Debt</p>
+                                <p class="font-bold text-sm">${isCC ? 'N/A' : formatMoney(status.remainingBalance)}</p>
+                            </div>
+                        </div>
+                    </div>
+                    ${!isCC ? `
+                    <button onclick="viewSchedule('${loan.id}')" class="w-full text-xs font-bold text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-900/30 py-2 rounded-lg transition-colors">
+                        ${t.viewBtn}
+                    </button>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        };
+
+        // --- STREAMING_CHUNK:Implementing Storage and Core Interaction Handlers... ---
+        const saveData = () => {
+            appState.salary = document.getElementById('salaryInput').value;
+            localStorage.setItem('loanTrackerState', JSON.stringify(appState));
+            updateDashboard();
+            renderLoansList();
+        };
+
+        const loadData = () => {
+            const saved = localStorage.getItem('loanTrackerState');
+            if (saved) {
+                appState = { ...appState, ...JSON.parse(saved) };
+            }
+            document.getElementById('salaryInput').value = appState.salary || '';
+            applyTheme();
+            applyLanguage();
+            updateDashboard();
+            renderLoansList();
+        };
+
+        // UI Listeners setup
+        const setupFormToggles = () => {
+            const types = document.querySelectorAll('input[name="loanType"]');
+            const ccFields = document.getElementById('ccFields');
+            const stdFields = document.getElementById('standardFields');
+            const isVarToggle = document.getElementById('isVariable');
+            const varContainer = document.getElementById('variableRulesContainer');
+
+            types.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'credit_card') {
+                        ccFields.classList.remove('hidden');
+                        stdFields.classList.add('hidden');
+                        document.getElementById('principal').removeAttribute('required');
+                        document.getElementById('interestRate').removeAttribute('required');
+                        document.getElementById('duration').removeAttribute('required');
+                        document.getElementById('ccImpact').setAttribute('required', 'true');
+                    } else {
+                        ccFields.classList.add('hidden');
+                        stdFields.classList.remove('hidden');
+                        document.getElementById('principal').setAttribute('required', 'true');
+                        document.getElementById('interestRate').setAttribute('required', 'true');
+                        document.getElementById('duration').setAttribute('required', 'true');
+                        document.getElementById('ccImpact').removeAttribute('required');
                     }
                 });
             });
 
-            // Installment Toggle (Fixed/Variable)
-            els.toggle.addEventListener('change', (e) => {
-                isVariable = e.target.checked;
-                if (isVariable) {
-                    els.labelVariable.classList.remove('text-gray-400');
-                    els.labelVariable.classList.add('text-gray-700', 'dark:text-gray-300',
+            isVarToggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    varContainer.classList.remove('hidden');
+                    if (currentVariableRules.length === 0) {
+                        currentVariableRules.push({ from: 1, to: 12, amount: 0 });
+                        renderVariableRules();
+                    }
+                } else {
+                    varContainer.classList.add('hidden');
+                }
+            });
+        };
+
+        document.getElementById('addRuleBtn').addEventListener('click', () => {
+            const last = currentVariableRules[currentVariableRules.length - 1];
+            let nextFrom = last ? parseInt(last.to) + 1 : 1;
+            currentVariableRules.push({ from: nextFrom, to: nextFrom + 11, amount: 0 });
+            renderVariableRules();
+        });
+
+        // Form Submit handler
+        document.getElementById('loanForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const type = document.querySelector('input[name="loanType"]:checked').value;
+            const isVariable = document.getElementById('isVariable').checked;
+            
+            const loanData = {
+                id: document.getElementById('editLoanId').value || generateId(),
+                name: document.getElementById('loanName').value,
+                startDate: document.getElementById('startDate').value,
+                type: type,
+                principal: document.getElementById('principal').value,
+                interestRate: document.getElementById('interestRate').value,
+                duration: document.getElementById('duration').value,
+                installmentType: isVariable ? 'variable' : 'fixed',
+                variableRules: isVariable ? [...currentVariableRules] : [],
+                ccImpact: document.getElementById('ccImpact').value
+            };
+
+            const existingIndex = appState.loans.findIndex(l => l.id === loanData.id);
+            if (existingIndex >= 0) {
+                appState.loans[existingIndex] = loanData;
+            } else {
+                appState.loans.push(loanData);
+            }
+
+            saveData();
+            resetForm();
+            showToast('recordSaved');
+        });
+
+        const resetForm = () => {
+            document.getElementById('loanForm').reset();
+            document.getElementById('editLoanId').value = '';
+            document.getElementById('formTitle').innerText = translations[appState.lang].addNewRecord;
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+            currentVariableRules = [];
+            renderVariableRules();
+            // Trigger radio change event to reset layout
+            document.querySelector('input[name="loanType"][value="mortgage"]').click();
+            document.getElementById('isVariable').checked = false;
+            document.getElementById('variableRulesContainer').classList.add('hidden');
+            
+            // Set default date to today
+            document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
+        };
+
+        document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
+        document.getElementById('salaryInput').addEventListener('input', saveData);
+
+        // --- STREAMING_CHUNK:Global Action Functions (Edit, Delete, View Schedule) ---
+        window.editLoan = (id) => {
+            const loan = appState.loans.find(l => l.id === id);
+            if (!loan) return;
+
+            document.getElementById('editLoanId').value = loan.id;
+            document.getElementById('formTitle').innerText = translations[appState.lang].editRecord;
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+            
+            document.getElementById('loanName').value = loan.name;
+            document.getElementById('startDate').value = loan.startDate;
+            
+            const radio = document.querySelector(`input[name="loanType"][value="${loan.type}"]`);
+            if (radio) radio.click();
+
+            if (loan.type === 'credit_card') {
+                document.getElementById('ccImpact').value = loan.ccImpact;
+            } else {
+                document.getElementById('principal').value = loan.principal;
+                document.getElementById('interestRate').value = loan.interestRate;
+                document.getElementById('duration').value = loan.duration;
+                
+                const isVar = loan.installmentType === 'variable';
+                const varToggle = document.getElementById('isVariable');
+                if (varToggle.checked !== isVar) {
+                    varToggle.click(); // This handles showing/hiding the rules container
+                }
+                
+                if (isVar) {
+                    currentVariableRules = [...loan.variableRules];
+                    renderVariableRules();
+                }
+            }
+
+            // Scroll to form smoothly
+            document.querySelector('#loanForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        window.deleteLoan = (id) => {
+            appState.loans = appState.loans.filter(l => l.id !== id);
+            saveData();
+            showToast('recordDeleted');
+            if(document.getElementById('editLoanId').value === id) resetForm();
+        };
+
+        window.viewSchedule = (id) => {
+            const loan = appState.loans.find(l => l.id === id);
+            if (!loan || loan.type === 'credit_card') return;
+
+            const data = calculateAmortization(loan);
+            const status = getLoanStatus(loan);
+            
+            document.getElementById('modalPaidSoFar').innerText = formatMoney(status.paidSoFar);
+            document.getElementById('modalTotalInterest').innerText = formatMoney(data.totalInterest);
+            document.getElementById('modalRemaining').innerText = formatMoney(status.remainingBalance);
+            
+            const monthsPassed = getMonthsPassed(loan.startDate);
+            const monthsLeft = Math.max(0, parseInt(loan.duration) - monthsPassed);
+            document.getElementById('modalMonthsLeft').innerText = monthsLeft;
+
+            const tbody = document.getElementById('scheduleTableBody');
+            tbody.innerHTML = '';
+
+            data.schedule.forEach(row => {
+                const isCurrentOrPast = row.month <= monthsPassed;
+                const tr = document.createElement('tr');
+                tr.className = `border-b border-slate-100 dark:border-slate-800 ${isCurrentOrPast ? 'bg-slate-50 dark:bg-slate-800/30 text-slate-500' : ''}`;
+                
+                tr.innerHTML = `
+                    <td class="px-4 py-2 font-medium">${row.month} ${isCurrentOrPast && row.month == monthsPassed ? '<span class="text-[10px] bg-brand-100 text-brand-600 px-1 rounded ml-1 rtl:ml-0 rtl:mr-1">Now</span>' : ''}</td>
+                    <td class="px-4 py-2">${formatMoney(row.payment)}</td>
+                    <td class="px-4 py-2">${formatMoney(row.principal)}</td>
+                    <td class="px-4 py-2">${formatMoney(row.interest)}</td>
+                    <td class="px-4 py-2 font-bold">${formatMoney(row.balance)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('scheduleModal').classList.remove('hidden');
+            document.getElementById('scheduleModal').classList.add('flex');
+        };
+
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            document.getElementById('scheduleModal').classList.add('hidden');
+            document.getElementById('scheduleModal').classList.remove('flex');
+        });
+        document.getElementById('modalBackdrop').addEventListener('click', () => {
+            document.getElementById('closeModalBtn').click();
+        });
+
+
+        // --- STREAMING_CHUNK:Theme and Language Setup ---
+        const applyTheme = () => {
+            if (appState.theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        };
+
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            appState.theme = appState.theme === 'dark' ? 'light' : 'dark';
+            applyTheme();
+            saveData();
+        });
+
+        const applyLanguage = () => {
+            const html = document.documentElement;
+            html.lang = appState.lang;
+            html.dir = appState.lang === 'ar' ? 'rtl' : 'ltr';
+            
+            const t = translations[appState.lang];
+            
+            // Apply text translations via data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' && el.type !== 'radio' && el.type !== 'checkbox') {
+                        el.placeholder = t[key];
+                    } else {
+                        el.innerHTML = t[key];
+                    }
+                }
+            });
+
+            // Toggle button text
+            document.getElementById('langToggle').innerText = appState.lang === 'en' ? 'عربي' : 'English';
+            
+            // Re-render UI components dependent on formatting or translation keys
+            updateDashboard();
+            renderLoansList();
+            renderVariableRules();
+        };
+
+        document.getElementById('langToggle').addEventListener('click', () => {
+            appState.lang = appState.lang === 'en' ? 'ar' : 'en';
+            applyLanguage();
+            saveData();
+        });
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            setupFormToggles();
+            document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
+            loadData();
+        });
+
+    </script>
+</body>
+</html>
