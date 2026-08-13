@@ -960,26 +960,46 @@
                 let totalMonthlyPmt = 0; // Current PMT excluding CC
                 let totalRemaining = 0; // Excl CC
                 
-                let ccTotalImpact = 0;
-                let highestPmtTotal = 0; // For total limit (Incl CC + highest loan pmts)
-                let highestPmtNonMortgage = 0; // For non-mort limit (Incl CC + highest non-mort pmts)
+                // Find maximum duration across all loans to build timeline
+                let maxDuration = 1;
+                enrichedLoans.forEach(l => {
+                    if (l.type !== 'cc' && l.duration > maxDuration) {
+                        maxDuration = parseInt(l.duration);
+                    }
+                });
+
+                let timelineTotal = new Array(maxDuration).fill(0);
+                let timelineNonMort = new Array(maxDuration).fill(0);
 
                 enrichedLoans.forEach(loan => {
                     if (loan.type === 'cc') {
-                        ccTotalImpact += loan.impact;
+                        // CC impacts all future months
+                        for(let i=0; i<maxDuration; i++) {
+                            timelineTotal[i] += loan.impact;
+                            timelineNonMort[i] += loan.impact;
+                        }
                     } else {
-                        // Only add if not finished
+                        // Only add if not finished for dashboard metrics
                         if (loan.monthsPassed < loan.duration) {
                             totalMonthlyPmt += loan.currentPmt;
                         }
                         totalRemaining += loan.remainingDebt;
                         
-                        highestPmtTotal += loan.highestPmt;
-                        if (loan.type !== 'mortgage') {
-                            highestPmtNonMortgage += loan.highestPmt;
-                        }
+                        // Add to timeline for limit calculations
+                        loan.schedule.forEach((row, i) => {
+                            if (i < maxDuration) {
+                                timelineTotal[i] += row.payment;
+                                if (loan.type !== 'mortgage') {
+                                    timelineNonMort[i] += row.payment;
+                                }
+                            }
+                        });
                     }
                 });
+
+                // Find peak concurrent DBR across timeline
+                let currentTotalDbr = timelineTotal.length > 0 ? Math.max(...timelineTotal) : 0;
+                let currentNonMortDbr = timelineNonMort.length > 0 ? Math.max(...timelineNonMort) : 0;
 
                 document.getElementById('dashMonthly').textContent = formatMoney(totalMonthlyPmt);
                 document.getElementById('dashRemaining').textContent = formatMoney(totalRemaining);
@@ -988,9 +1008,6 @@
                 let limit1Max = salary * 0.65;
                 let limit2Max = salary * 0.45;
                 
-                let currentTotalDbr = highestPmtTotal + ccTotalImpact;
-                let currentNonMortDbr = highestPmtNonMortgage + ccTotalImpact;
-
                 let pct1 = salary > 0 ? (currentTotalDbr / salary) * 100 : 0;
                 let pct2 = salary > 0 ? (currentNonMortDbr / salary) * 100 : 0;
 
@@ -1175,26 +1192,66 @@
                     });
                 }
                 else if (metricType === 'limit_total') {
+                    let maxDuration = 1;
+                    enriched.forEach(l => { if (l.type !== 'cc' && l.duration > maxDuration) maxDuration = parseInt(l.duration); });
+                    
+                    let timelineTotal = new Array(maxDuration).fill(0);
+                    enriched.forEach(loan => {
+                        if (loan.type === 'cc') {
+                            for(let i=0; i<maxDuration; i++) timelineTotal[i] += loan.impact;
+                        } else {
+                            loan.schedule.forEach((row, i) => { if (i < maxDuration) timelineTotal[i] += row.payment; });
+                        }
+                    });
+                    
+                    let peakIndex = 0;
+                    for(let i=0; i<maxDuration; i++) { if (timelineTotal[i] > timelineTotal[peakIndex]) peakIndex = i; }
+
                     titleEl.textContent = t('limit_total');
-                    descEl.textContent = "Includes all active loans (using highest PMT across duration) + Credit Cards.";
+                    descEl.textContent = state.lang === 'ar' ? 
+                        `محسوب عند أعلى شهر متزامن (شهر ${peakIndex + 1}). يشمل البطاقات + القروض المتداخلة.` : 
+                        `Calculated at peak concurrent month (Month ${peakIndex + 1}). Includes CCs + highest overlapping payments.`;
                     
                     enriched.forEach(l => {
                         if (l.type === 'cc') {
                             items.push({ name: l.name + ' (CC)', val: l.impact });
-                        } else if (l.highestPmt > 0) {
-                            items.push({ name: l.name + ` (${t('highest_pmt')})`, val: l.highestPmt });
+                        } else {
+                            let pmtAtPeak = l.schedule[peakIndex] ? l.schedule[peakIndex].payment : 0;
+                            if (pmtAtPeak > 0) {
+                                items.push({ name: l.name + ` (Month ${peakIndex + 1})`, val: pmtAtPeak });
+                            }
                         }
                     });
                 }
                 else if (metricType === 'limit_non_mortgage') {
+                    let maxDuration = 1;
+                    enriched.forEach(l => { if (l.type !== 'cc' && l.duration > maxDuration) maxDuration = parseInt(l.duration); });
+                    
+                    let timelineNonMort = new Array(maxDuration).fill(0);
+                    enriched.forEach(loan => {
+                        if (loan.type === 'cc') {
+                            for(let i=0; i<maxDuration; i++) timelineNonMort[i] += loan.impact;
+                        } else if (loan.type !== 'mortgage') {
+                            loan.schedule.forEach((row, i) => { if (i < maxDuration) timelineNonMort[i] += row.payment; });
+                        }
+                    });
+                    
+                    let peakIndex = 0;
+                    for(let i=0; i<maxDuration; i++) { if (timelineNonMort[i] > timelineNonMort[peakIndex]) peakIndex = i; }
+
                     titleEl.textContent = t('limit_non_mortgage');
-                    descEl.textContent = "Includes non-mortgage loans (using highest PMT across duration) + Credit Cards.";
+                    descEl.textContent = state.lang === 'ar' ? 
+                        `محسوب عند أعلى شهر متزامن (شهر ${peakIndex + 1}) باستثناء العقاري.` : 
+                        `Calculated at peak concurrent month (Month ${peakIndex + 1}) excluding mortgages. Includes CCs.`;
                     
                     enriched.forEach(l => {
                         if (l.type === 'cc') {
                             items.push({ name: l.name + ' (CC)', val: l.impact });
-                        } else if (l.type !== 'mortgage' && l.highestPmt > 0) {
-                            items.push({ name: l.name + ` (${t('highest_pmt')})`, val: l.highestPmt });
+                        } else if (l.type !== 'mortgage') {
+                            let pmtAtPeak = l.schedule[peakIndex] ? l.schedule[peakIndex].payment : 0;
+                            if (pmtAtPeak > 0) {
+                                items.push({ name: l.name + ` (Month ${peakIndex + 1})`, val: pmtAtPeak });
+                            }
                         }
                     });
                 }
